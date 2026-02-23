@@ -219,25 +219,75 @@ def calculate_saving_throws(class_name: str, race: str) -> Dict[str, int]:
     }
 
 
-## --- Character Factory ---
-#
-#def generate_character(
-#    race: str,
-#    class_name: str,
-#    rng: DiceRoller,
-#    name: Optional[str] = None,
-#) -> Character:
-#    """
-#    Generate a complete level 1 character using roll-first flow:
-#
-#    1. Roll abilities
-#    2. Validate race
-#    3. Validate class
-#    4. Roll HP
-#    5. Calculate AC
-#    6. Set attack bonus
-#    7. Calculate saving throws
-#    8. Roll starting money
-#    9. Return Character object
-#    """
-#    raise NotImplementedError("generate_character not implemented.")
+# --- Character Factory ---
+
+def generate_character(
+    race: str,
+    class_name: str,
+    rng: DiceRoller,
+    name: Optional[str] = None,
+) -> Character:
+    """
+    Generate a complete level 1 character using roll-first flow:
+
+    1. Roll abilities
+    2. Validate race
+    3. Validate class
+    4. Roll HP
+    5. Calculate AC
+    6. Set attack bonus
+    7. Calculate saving throws
+    8. Roll starting money
+    9. Return Character object
+    """
+    # 1. Roll abilities
+    abilities = roll_abilities(rng)
+
+    # 2. Validate race
+    race_errors = validate_race(abilities, race)
+    if race_errors:
+        raise ValueError("; ".join(race_errors))
+
+    # 3. Validate class
+    class_errors = validate_class(abilities, race, class_name)
+    if class_errors:
+        raise ValueError("; ".join(class_errors))
+
+    # 4. Ability modifiers
+    ability_mods = calculate_ability_modifiers(abilities)
+
+    # 5. Hit points
+    hp = roll_hit_points(
+        class_name,
+        race,
+        ability_mods["CON"],
+        rng
+    )
+
+    # 6. Armor class (no armor at creation)
+    ac = calculate_armor_class(ability_mods["DEX"])
+
+    # 7. Attack bonus
+    attack_bonus = level_one_attack_bonus()
+
+    # 8. Saving throws
+    saving_throws = calculate_saving_throws(class_name, race)
+
+    # 9. Starting money
+    money = starting_money(rng)
+
+    # 10. Return Character
+    return Character(
+        abilities=abilities,
+        ability_mods=ability_mods,
+        ac=ac,
+        attack_bonus=attack_bonus,
+        class_name=class_name.lower(),
+        hp=hp,
+        inventory=[],
+        level=1,
+        money_gp=money,
+        name=name,
+        race=race.lower(),
+        saving_throws=saving_throws,
+    )

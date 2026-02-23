@@ -6,14 +6,16 @@ from diceroller.core import DiceRoller, CustomRandom
 from rpgcharacters.classes import CLASSES
 from rpgcharacters.races import RACES
 from rpgcharacters.character_generator import (
+    ABILITY_ROLL_ORDER,
     AbilityScores,
     ability_modifier,
     calculate_ability_modifiers,
     calculate_armor_class,
     calculate_saving_throws,
+    generate_character,
     level_one_attack_bonus,
-    roll_hit_points,
     roll_abilities,
+    roll_hit_points,
     starting_money,
     validate_class,
     validate_race,
@@ -23,6 +25,11 @@ class CustomRandomMoc(CustomRandom):
     def __init__(self):
         self.randint_return_value = 0
         self.dice_type = None
+        self.randint_seq = []
+
+    def randint_sequence(self, seq: list[int]):
+        self.randint_seq = [x for x in seq]
+        self.randint_seq.reverse()
 
     def randint_returns(self, value: int):
         self.randint_return_value = value
@@ -30,7 +37,10 @@ class CustomRandomMoc(CustomRandom):
     @override
     def randint(self, start: int, end: int) -> int:
         self.dice_type = end
-        return self.randint_return_value
+        if len(self.randint_seq) > 0:
+            return self.randint_seq.pop()
+        else:
+            return self.randint_return_value
 
 
 def make_ability_scores(**overrides):
@@ -263,8 +273,57 @@ def test_roll_hit_points_minimum_one_hp():
     assert hp == 1
 
 
-## --- Factory Test ---
-#
-#def test_generate_character_returns_valid_character_object():
-#    """Full roll-first generation returns valid Character instance."""
-#    raise NotImplementedError
+# --- Factory Test ---
+
+def test_generate_character_integration():
+    """
+    Integration test for full character generation pipeline.
+    Verifies that all derived stats are populated correctly
+    and basic invariants hold.
+    """
+
+    # Force predictable dice behavior:
+    # - Ability rolls: 10 for all six stats
+    # - HP roll: 4
+    # - Starting money roll (3d6): 9
+    moc = CustomRandomMoc()
+    moc.randint_sequence([
+        5, 4, 1, # CHA 
+        5, 4, 1, # CON
+        5, 4, 1, # DEX
+        5, 4, 1, # INT
+        5, 4, 1, # STR
+        5, 4, 1, # WIS
+        4,       # HP 
+        9,       # gp
+    ])
+    rng = DiceRoller(moc)
+
+    character = generate_character(
+        race="human",
+        class_name="fighter",
+        rng=rng,
+        name="Test Character",
+    )
+
+    # --- Structural assertions ---
+    assert character.name == "Test Character"
+    assert character.race == "human"
+    assert character.class_name == "fighter"
+    assert character.level == 1
+    assert character.inventory == []
+
+    # --- Ability assertions ---
+    for ability in ABILITY_ROLL_ORDER:
+        assert getattr(character.abilities, ability) == 10
+        assert character.ability_mods[ability] == 0
+
+    # --- Derived stats ---
+    assert character.attack_bonus == 1
+    assert character.ac == 11  # base 11 + DEX mod 0
+    assert character.hp == 4   # rolled 4 + CON mod 0
+    assert character.money_gp == 90  # 9 * 10
+
+    # --- Saving throws ---
+    base_saves = CLASSES["fighter"]["saving_throws"]
+    assert character.saving_throws == base_saves
