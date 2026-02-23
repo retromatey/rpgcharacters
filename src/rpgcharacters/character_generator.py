@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Dict, List, Optional, Protocol
 from diceroller.core import DiceRoller
 
@@ -6,6 +6,16 @@ from diceroller.core import DiceRoller
 
 ABILITY_ROLL = "3d6"
 STARTING_MONEY_ROLL = "3d6"
+ABILITY_ROLL_ORDER = ("STR", "DEX", "CON", "INT", "WIS", "CHA")
+ABILITY_MOD_TABLE = (
+    (3,   3, -3),
+    (4,   5, -2),
+    (6,   8, -1),
+    (9,  12,  0),
+    (13, 15,  1),
+    (16, 17,  2),
+    (18, 18,  3),
+)
 
 # --- Domain Models ---
 
@@ -37,35 +47,40 @@ class Character:
 
 # --- Ability Logic ---
 
+def ability_modifier(score: int) -> int:
+    """
+    Return the ability bonus/penalty according to ABILITY_MOD_TABLE table.
+    """
+    for low, high, mod in ABILITY_MOD_TABLE:
+        if low <= score <= high:
+            return mod
+    raise ValueError("Ability score must be between 3 and 18.")
+
 def roll_abilities(rng: DiceRoller) -> AbilityScores:
     """
     Roll 3d6 in order for STR, DEX, CON, INT, WIS, CHA.
     """
-    raise NotImplementedError
-
-
-def ability_modifier(score: int) -> int:
-    """
-    Return the ability bonus/penalty according to RAW table.
-    """
-    raise NotImplementedError
-
+    rolled = {name: rng.roll(ABILITY_ROLL) for name in ABILITY_ROLL_ORDER}
+    return AbilityScores(**rolled)
 
 def calculate_ability_modifiers(abilities: AbilityScores) -> Dict[str, int]:
     """
     Return dictionary mapping ability names to modifiers.
     """
-    raise NotImplementedError
+    return {
+        field.name: ability_modifier(getattr(abilities, field.name))
+        for field in fields(AbilityScores)
+    }
 
 
-# --- Validation ---
+## --- Validation ---
 
 def validate_race(abilities: AbilityScores, race: str) -> List[str]:
     """
     Validate racial ability requirements.
     Return list of validation error messages (empty if valid).
     """
-    raise NotImplementedError
+    raise NotImplementedError("validate_race not implemented.")
 
 
 def validate_class(abilities: AbilityScores, race: str, class_name: str) -> List[str]:
@@ -73,16 +88,16 @@ def validate_class(abilities: AbilityScores, race: str, class_name: str) -> List
     Validate class prime requisite and race/class compatibility.
     Return list of validation error messages (empty if valid).
     """
-    raise NotImplementedError
+    raise NotImplementedError("validate_class not implemented.")
 
 
-# --- Derived Stats ---
+## --- Derived Stats ---
 
 def roll_hit_points(class_name: str, con_modifier: int, rng: DiceRoller) -> int:
     """
     Roll class hit die and apply CON modifier.
     """
-    raise NotImplementedError
+    raise NotImplementedError("roll_hit_points not implemented.")
 
 
 def calculate_armor_class(dex_modifier: int) -> int:
@@ -90,21 +105,21 @@ def calculate_armor_class(dex_modifier: int) -> int:
     Calculate AC for level 1 character with no armor or shield.
     Base 11 + DEX modifier.
     """
-    raise NotImplementedError
+    raise NotImplementedError("calculate_armor_class not implemented.")
 
 
 def starting_money(rng: DiceRoller) -> int:
     """
     Roll 3d6 * 10 to determine starting gold pieces.
     """
-    raise NotImplementedError
+    raise NotImplementedError("starting_money not implemented.")
 
 
 def level_one_attack_bonus() -> int:
     """
     Return attack bonus for level 1 character.
     """
-    raise NotImplementedError
+    raise NotImplementedError("level_one_attack_bonus not implemented.")
 
 
 def calculate_saving_throws(class_name: str, race: str) -> Dict[str, int]:
@@ -112,10 +127,10 @@ def calculate_saving_throws(class_name: str, race: str) -> Dict[str, int]:
     Return saving throws for level 1 character,
     applying racial bonuses.
     """
-    raise NotImplementedError
+    raise NotImplementedError("calculate_saving_throws not implemented.")
 
 
-# --- Character Factory ---
+## --- Character Factory ---
 
 def generate_character(
     race: str,
@@ -136,4 +151,4 @@ def generate_character(
     8. Roll starting money
     9. Return Character object
     """
-    raise NotImplementedError
+    raise NotImplementedError("generate_character not implemented.")
