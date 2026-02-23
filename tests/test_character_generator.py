@@ -30,6 +30,11 @@ class CustomRandomMoc(CustomRandom):
         return self.randint_return_value
 
 
+def make_ability_scores(**overrides):
+    base = {field.name: 10 for field in fields(AbilityScores)}
+    base.update(overrides)
+    return AbilityScores(**base)
+
 
 # --- Ability Tests ---
 
@@ -102,7 +107,9 @@ def test_calculate_ability_modifiers_returns_all_keys():
 )
 def test_race_maximum_constraints(race, field, value):
     """Ability scores higher than race allows should produce valiation errors."""
-    raise NotImplementedError
+    abilities = make_ability_scores(**{field: value})
+    errors = validate_race(abilities, race)
+    assert errors, "Expected race validation to reject abilities above the racial maximum."
 
 
 @pytest.mark.parametrize(
@@ -115,7 +122,9 @@ def test_race_maximum_constraints(race, field, value):
 )
 def test_race_minimum_constraints(race, field, value):
     """Ability scores lower than race allows should produce valiation errors."""
-    raise NotImplementedError
+    abilities = make_ability_scores(**{field: value})
+    errors = validate_race(abilities, race)
+    assert errors, "Expected race validation to reject abilities below the racial minimum."
 
 @pytest.mark.parametrize(
     "class_,field,value",
@@ -128,12 +137,25 @@ def test_race_minimum_constraints(race, field, value):
 )
 def test_class_prime_requisite_min_constraints(class_, field, value):
     """Ability scores lower than class allows should produce valiation errors."""
-    raise NotImplementedError
+    abilities = make_ability_scores(**{field: value})
+    errors = validate_class(abilities, "human", class_)
+    assert errors, "Expected class validation to reject abilities below the prime requisite."
 
 
 def test_invalid_race_class_combo_returns_error():
     """Invalid race/class combinations should produce validation errors."""
-    raise NotImplementedError
+    overrides = {
+        "CHA": 12,
+        "CON": 12,
+        "DEX": 12,
+        "INT": 12,
+        "STR": 12,
+        "WIS": 12,
+    }
+    # Halflings are not allowed to be magic-users per RACES data.
+    abilities = make_ability_scores(**overrides)
+    errors = validate_class(abilities, "halfling", "magic-user")
+    assert errors, "Expected class validation to reject disallowed race/class combos."
 
 
 ## --- Derived Stat Tests ---
