@@ -243,6 +243,26 @@ def test_roll_hit_points_no_racial_cap():
     assert hp == 8
 
 
+def test_roll_hit_points_minimum_one_hp():
+    """
+    Hit points should never drop below 1 at level 1,
+    even with a negative Constitution modifier.
+    """
+
+    # Force minimum die roll of 1
+    moc = CustomRandomMoc()
+    moc.randint_returns(1)
+    rng = DiceRoller(moc)
+
+    # Extreme negative CON modifier
+    con_modifier = -3
+
+    hp = roll_hit_points("magic-user", "human", con_modifier, rng)
+
+    # 1 - 3 would be -2 without clamp
+    assert hp == 1
+
+
 ## --- Factory Test ---
 #
 #def test_generate_character_returns_valid_character_object():
