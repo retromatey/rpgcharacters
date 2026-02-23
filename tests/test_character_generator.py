@@ -3,17 +3,18 @@ from dataclasses import fields
 from typing import override
 
 from diceroller.core import DiceRoller, CustomRandom
+from rpgcharacters.classes import CLASSES
+from rpgcharacters.races import RACES
 from rpgcharacters.character_generator import (
     AbilityScores,
     ability_modifier,
     calculate_ability_modifiers,
-    #calculate_armor_class,
-    #calculate_saving_throws,
-    #generate_character,
-    #level_one_attack_bonus,
+    calculate_armor_class,
+    calculate_saving_throws,
+    level_one_attack_bonus,
+    roll_hit_points,
     roll_abilities,
-    #roll_hit_points,
-    #starting_money,
+    starting_money,
     validate_class,
     validate_race,
 )
@@ -96,7 +97,6 @@ def test_calculate_ability_modifiers_returns_all_keys():
 
 
 # --- Validation Tests ---
-
 @pytest.mark.parametrize(
     "race,field,value",
     [
@@ -125,6 +125,7 @@ def test_race_minimum_constraints(race, field, value):
     abilities = make_ability_scores(**{field: value})
     errors = validate_race(abilities, race)
     assert errors, "Expected race validation to reject abilities below the racial minimum."
+
 
 @pytest.mark.parametrize(
     "class_,field,value",
@@ -162,27 +163,49 @@ def test_invalid_race_class_combo_returns_error():
 
 def test_level_one_attack_bonus_is_plus_one():
     """Level 1 characters should have +1 attack bonus."""
-    raise NotImplementedError
+    assert level_one_attack_bonus() == 1
 
 
 def test_calculate_ac_base_11_plus_dex():
     """AC should be 11 + DEX modifier (no armor)."""
-    raise NotImplementedError
+    dex_score = 16
+    dex_modifier = ability_modifier(dex_score)
+    expected_ac = 11 + dex_modifier
+    assert calculate_armor_class(dex_modifier) == expected_ac
 
 
 def test_starting_money_is_multiple_of_10():
     """Starting money should always be multiple of 10."""
-    raise NotImplementedError
+    moc = CustomRandomMoc()
+    moc.randint_returns(4)  # each die returns 4
+    rng = DiceRoller(moc)
+    money = starting_money(rng)
+    assert money % 10 == 0
+    assert 30 <= money <= 180
 
 
 def test_roll_hit_points_applies_con_modifier():
     """HP should include CON modifier."""
-    raise NotImplementedError
+    moc = CustomRandomMoc()
+    moc.randint_returns(5)
+    rng = DiceRoller(moc)
+    con_modifier = 2
+    expected_hp = 5 + con_modifier
+    hp = roll_hit_points("fighter", "human", con_modifier, rng)
+    assert hp == expected_hp
 
 
 def test_saving_throws_include_race_bonuses():
     """Saving throws must reflect racial bonuses."""
-    raise NotImplementedError
+    race_name = "dwarf"
+    class_name = "fighter"
+    base_saves = CLASSES[class_name]["saving_throws"]
+    race_mods = RACES[race_name]["saving_throw_modifiers"]
+    expected = {
+        save: base_saves[save] + race_mods.get(save, 0)
+        for save in base_saves
+    }
+    assert calculate_saving_throws(class_name, race_name) == expected
 
 
 ## --- Factory Test ---
