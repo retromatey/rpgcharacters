@@ -4,18 +4,18 @@ from typing import override
 
 from diceroller.core import DiceRoller, CustomRandom
 from rpgcharacters.character_generator import (
-    roll_abilities,
+    AbilityScores,
     ability_modifier,
     calculate_ability_modifiers,
-    validate_race,
+    #calculate_armor_class,
+    #calculate_saving_throws,
+    #generate_character,
+    #level_one_attack_bonus,
+    roll_abilities,
+    #roll_hit_points,
+    #starting_money,
     validate_class,
-    roll_hit_points,
-    calculate_armor_class,
-    starting_money,
-    level_one_attack_bonus,
-    calculate_saving_throws,
-    generate_character,
-    AbilityScores,
+    validate_race,
 )
 
 class CustomRandomMoc(CustomRandom):
@@ -37,9 +37,11 @@ def test_ability_modifier_rejects_invalid_low():
     with pytest.raises(ValueError):
         ability_modifier(2)
 
+
 def test_ability_modifier_rejects_invalid_high():
     with pytest.raises(ValueError):
         ability_modifier(19)
+
 
 @pytest.mark.parametrize(
     "score,expected",
@@ -88,28 +90,52 @@ def test_calculate_ability_modifiers_returns_all_keys():
         assert modifiers[name] == ability_modifier(getattr(abilities, name))
 
 
-## --- Validation Tests ---
-#
-#def test_dwarf_requires_con_9_or_higher():
-#    """Dwarves must have CON >= 9."""
-#    raise NotImplementedError
-#
-#
-#def test_elf_requires_int_9_or_higher():
-#    """Elves must have INT >= 9."""
-#    raise NotImplementedError
-#
-#
-#def test_magic_user_requires_int_9_or_higher():
-#    """Magic-Users must have INT >= 9."""
-#    raise NotImplementedError
-#
-#
-#def test_invalid_race_class_combo_returns_error():
-#    """Invalid race/class combinations should produce validation errors."""
-#    raise NotImplementedError
-#
-#
+# --- Validation Tests ---
+
+@pytest.mark.parametrize(
+    "race,field,value",
+    [
+        ("dwarf",    "CHA", 18),
+        ("elf",      "CON", 18),
+        ("halfling", "STR", 18),
+    ],
+)
+def test_race_maximum_constraints(race, field, value):
+    """Ability scores higher than race allows should produce valiation errors."""
+    raise NotImplementedError
+
+
+@pytest.mark.parametrize(
+    "race,field,value",
+    [
+        ("dwarf",      "CON", 8),
+        ("elf",        "INT", 8),
+        ("halfling",   "DEX", 8),
+    ],
+)
+def test_race_minimum_constraints(race, field, value):
+    """Ability scores lower than race allows should produce valiation errors."""
+    raise NotImplementedError
+
+@pytest.mark.parametrize(
+    "class_,field,value",
+    [
+        ("cleric",    "WIS", 8),
+        ("fighter",   "STR", 8),
+        ("magic-user","INT", 8),
+        ("thief",     "DEX", 8),
+    ],
+)
+def test_class_prime_requisite_min_constraints(class_, field, value):
+    """Ability scores lower than class allows should produce valiation errors."""
+    raise NotImplementedError
+
+
+def test_invalid_race_class_combo_returns_error():
+    """Invalid race/class combinations should produce validation errors."""
+    raise NotImplementedError
+
+
 ## --- Derived Stat Tests ---
 #
 #def test_level_one_attack_bonus_is_plus_one():
