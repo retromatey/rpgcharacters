@@ -149,6 +149,20 @@ def validate_class(abilities: AbilityScores, race: str, class_name: str) -> List
     return errors
 
 
+def valid_races_for_abilities(abilities: AbilityScores) -> list[str]:
+    return [
+        race for race in RACES
+        if not validate_race(abilities, race)
+    ]
+
+
+def valid_classes_for_race(abilities: AbilityScores, race: str) -> list[str]:
+    return [
+        class_name for class_name in CLASSES
+        if not validate_class(abilities, race, class_name)
+    ]
+
+
 # --- Derived Stats ---
 
 def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoller) -> int:
@@ -226,6 +240,7 @@ def generate_character(
     class_name: str,
     rng: DiceRoller,
     name: Optional[str] = None,
+    abilities: Optional[AbilityScores] = None
 ) -> Character:
     """
     Generate a complete level 1 character using roll-first flow:
@@ -241,7 +256,8 @@ def generate_character(
     9. Return Character object
     """
     # 1. Roll abilities
-    abilities = roll_abilities(rng)
+    # abilities = roll_abilities(rng)
+    abilities = abilities if abilities is not None else roll_abilities(rng)
 
     # 2. Validate race
     race_errors = validate_race(abilities, race)

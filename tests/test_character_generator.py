@@ -17,6 +17,8 @@ from rpgcharacters.character_generator import (
     roll_abilities,
     roll_hit_points,
     starting_money,
+    valid_classes_for_race,
+    valid_races_for_abilities,
     validate_class,
     validate_race,
 )
@@ -169,6 +171,110 @@ def test_invalid_race_class_combo_returns_error():
     abilities = make_ability_scores(**overrides)
     errors = validate_class(abilities, "halfling", "magic-user")
     assert errors, "Expected class validation to reject disallowed race/class combos."
+
+
+# --- valid_races_for_abilities tests ---
+
+def test_valid_races_all_available_with_neutral_stats():
+    """
+    With all stats at 10, all races should be valid.
+    """
+    abilities = AbilityScores(
+        STR=10, DEX=10, CON=10,
+        INT=10, WIS=10, CHA=10
+    )
+
+    races = valid_races_for_abilities(abilities)
+
+    assert set(races) == set(RACES.keys())
+
+
+def test_valid_races_filters_out_dwarf_when_con_too_low():
+    """
+    Dwarf requires CON >= 9.
+    """
+    abilities = AbilityScores(
+        STR=10, DEX=10, CON=8,
+        INT=10, WIS=10, CHA=10
+    )
+
+    races = valid_races_for_abilities(abilities)
+
+    assert "dwarf" not in races
+    assert "human" in races
+
+
+def test_valid_races_filters_out_elf_when_con_too_high():
+    """
+    Elf requires CON <= 17.
+    """
+    abilities = AbilityScores(
+        STR=10, DEX=10, CON=18,
+        INT=10, WIS=10, CHA=10
+    )
+
+    races = valid_races_for_abilities(abilities)
+
+    assert "elf" not in races
+
+
+# --- valid_classes_for_race tests ---
+
+def test_valid_classes_human_all_classes_available():
+    """
+    Human should be able to choose any class with sufficient prime stats.
+    """
+    abilities = AbilityScores(
+        STR=12, DEX=12, CON=12,
+        INT=12, WIS=12, CHA=12
+    )
+
+    classes = valid_classes_for_race(abilities, "human")
+
+    assert set(classes) == set(CLASSES.keys())
+
+
+def test_valid_classes_filters_by_prime_requisite():
+    """
+    Fighter requires STR >= 9.
+    """
+    abilities = AbilityScores(
+        STR=8, DEX=12, CON=12,
+        INT=12, WIS=12, CHA=12
+    )
+
+    classes = valid_classes_for_race(abilities, "human")
+
+    assert "fighter" not in classes
+    assert "cleric" in classes
+
+
+def test_valid_classes_respects_race_class_restrictions():
+    """
+    Dwarf cannot be magic-user.
+    """
+    abilities = AbilityScores(
+        STR=12, DEX=12, CON=12,
+        INT=12, WIS=12, CHA=12
+    )
+
+    classes = valid_classes_for_race(abilities, "dwarf")
+
+    assert "magic-user" not in classes
+
+
+def test_valid_classes_returns_empty_if_no_class_valid():
+    """
+    If all prime requisites fail, no classes should be returned.
+    """
+    abilities = AbilityScores(
+        STR=3, DEX=3, CON=3,
+        INT=3, WIS=3, CHA=3
+    )
+
+    classes = valid_classes_for_race(abilities, "human")
+
+    assert classes == []
 
 
 # --- Derived Stat Tests ---
