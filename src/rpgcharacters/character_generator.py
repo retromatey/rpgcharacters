@@ -4,6 +4,7 @@ from diceroller.core import DiceRoller
 
 from rpgcharacters.classes import CLASSES
 from rpgcharacters.races import RACES
+from rpgcharacters.equipment import ARMOR
 
 # --- Constants ---
 
@@ -154,7 +155,24 @@ def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoll
     """
     Roll class hit die and apply CON modifier.
     """
-    raise NotImplementedError("roll_hit_points not implemented.")
+    normalized_class = class_name.lower()
+    class_data = CLASSES.get(normalized_class)
+    if not class_data:
+        raise ValueError(f"Unknown class '{class_name}'.")
+
+    normalized_race = race.lower()
+    race_data = RACES.get(normalized_race, {})
+    if not race_data:
+        raise ValueError(f"Unknown race '{race}'.")
+
+    hit_die = class_data["hit_die"]
+    hit_die_cap = race_data.get("hit_die_max")
+    dice_type = hit_die
+    if hit_die_cap is not None:
+        dice_type = min(hit_die, hit_die_cap)
+
+    roll = rng.roll(f"1d{dice_type}")
+    return roll + con_modifier
 
 
 def calculate_armor_class(dex_modifier: int) -> int:
@@ -162,14 +180,14 @@ def calculate_armor_class(dex_modifier: int) -> int:
     Calculate AC for level 1 character with no armor or shield.
     Base 11 + DEX modifier.
     """
-    raise NotImplementedError("calculate_armor_class not implemented.")
+    return ARMOR["none"]["base_ac"] + dex_modifier
 
 
 def starting_money(rng: DiceRoller) -> int:
     """
     Roll 3d6 * 10 to determine starting gold pieces.
     """
-    raise NotImplementedError("starting_money not implemented.")
+    return rng.roll(STARTING_MONEY_ROLL) * 10
 
 
 def level_one_attack_bonus() -> int:
@@ -183,7 +201,22 @@ def calculate_saving_throws(class_name: str, race: str) -> Dict[str, int]:
     """
     Return saving throws for level 1 character, applying racial modifiers.
     """
-    raise NotImplementedError("calculate_saving_throws not implemented.")
+    normalized_class = class_name.lower()
+    class_data = CLASSES.get(normalized_class)
+    if not class_data:
+        raise ValueError(f"Unknown class '{class_name}'.")
+
+    normalized_race = race.lower()
+    race_data = RACES.get(normalized_race, {})
+    if not race_data:
+        raise ValueError(f"Unknown race '{race}'.")
+
+    base_saves = class_data["saving_throws"]
+    modifiers = race_data.get("saving_throw_modifiers", {})
+    return {
+        name: base_saves[name] + modifiers.get(name, 0)
+        for name in base_saves
+    }
 
 
 ## --- Character Factory ---

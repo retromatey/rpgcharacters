@@ -22,12 +22,14 @@ from rpgcharacters.character_generator import (
 class CustomRandomMoc(CustomRandom):
     def __init__(self):
         self.randint_return_value = 0
+        self.dice_type = None
 
     def randint_returns(self, value: int):
         self.randint_return_value = value
 
     @override
     def randint(self, start: int, end: int) -> int:
+        self.dice_type = end
         return self.randint_return_value
 
 
@@ -206,6 +208,39 @@ def test_saving_throws_include_race_bonuses():
         for save in base_saves
     }
     assert calculate_saving_throws(class_name, race_name) == expected
+
+
+def test_roll_hit_points_respects_racial_hit_die_cap():
+    """
+    Elf fighters should be capped at d6 even though fighters normally use d8.
+    """
+
+    # Force die to return 8 (max of d8)
+    moc = CustomRandomMoc()
+    moc.randint_returns(6)
+    rng = DiceRoller(moc)
+
+    con_modifier = 0
+
+    # Fighter normally rolls d8, but elf cap is d6
+    hp = roll_hit_points("fighter", "elf", con_modifier, rng)
+
+    # The dice type used must be a d6
+    assert moc.dice_type == 6
+
+
+def test_roll_hit_points_no_racial_cap():
+    """
+    Human fighters should roll full d8.
+    """
+
+    moc = CustomRandomMoc()
+    moc.randint_returns(8)
+    rng = DiceRoller(moc)
+
+    hp = roll_hit_points("fighter", "human", 0, rng)
+
+    assert hp == 8
 
 
 ## --- Factory Test ---
