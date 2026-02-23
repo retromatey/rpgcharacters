@@ -326,4 +326,4 @@ def test_generate_character_integration():
 
     # --- Saving throws ---
     base_saves = CLASSES["fighter"]["saving_throws"]
-    assert character.saving_throws == base_saves
+    assert character.saving_throws == calculate_saving_throws("fighter", "human")
