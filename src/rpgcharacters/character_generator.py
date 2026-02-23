@@ -2,6 +2,9 @@ from dataclasses import dataclass, fields
 from typing import Dict, List, Optional, Protocol
 from diceroller.core import DiceRoller
 
+from rpgcharacters.classes import CLASSES
+from rpgcharacters.races import RACES
+
 # --- Constants ---
 
 ABILITY_ROLL = "3d6"
@@ -80,7 +83,35 @@ def validate_race(abilities: AbilityScores, race: str) -> List[str]:
     Validate racial ability requirements.
     Return list of validation error messages (empty if valid).
     """
-    raise NotImplementedError("validate_race not implemented.")
+    errors: List[str] = []
+    normalized_race = race.lower()
+    race_data = RACES.get(normalized_race)
+    if not race_data:
+        errors.append(f"Unknown race '{race}'.")
+        return errors
+
+    ability_min = race_data.get("ability_min", {})
+    ability_max = race_data.get("ability_max", {})
+
+    for ability, minimum in ability_min.items():
+        score = getattr(abilities, ability, None)
+        if score is None:
+            continue
+        if score < minimum:
+            errors.append(
+                f"{race.title()} requires {ability} >= {minimum}; found {score}."
+            )
+
+    for ability, maximum in ability_max.items():
+        score = getattr(abilities, ability, None)
+        if score is None:
+            continue
+        if score > maximum:
+            errors.append(
+                f"{race.title()} limits {ability} to <= {maximum}; found {score}."
+            )
+
+    return errors
 
 
 def validate_class(abilities: AbilityScores, race: str, class_name: str) -> List[str]:
@@ -88,48 +119,73 @@ def validate_class(abilities: AbilityScores, race: str, class_name: str) -> List
     Validate class prime requisite and race/class compatibility.
     Return list of validation error messages (empty if valid).
     """
-    raise NotImplementedError("validate_class not implemented.")
+    errors: List[str] = []
+    normalized_race = race.lower()
+    normalized_class = class_name.lower()
+
+    race_data = RACES.get(normalized_race)
+    if not race_data:
+        errors.append(f"Unknown race '{race}'.")
+
+    class_data = CLASSES.get(normalized_class)
+    if not class_data:
+        errors.append(f"Unknown class '{class_name}'.")
+
+    if race_data and class_data:
+        allowed_classes = race_data.get("allowed_classes", [])
+        if normalized_class not in allowed_classes:
+            errors.append(
+                f"{race.title()} characters cannot be {class_name.title()}s."
+            )
+        prime = class_data["prime_requisite"]
+        min_prime = class_data["min_prime"]
+        score = getattr(abilities, prime, None)
+        if score is not None and score < min_prime:
+            errors.append(
+                f"{class_name.title()} requires {prime} >= {min_prime}; found {score}."
+            )
+
+    return errors
 
 
-## --- Derived Stats ---
-#
-#def roll_hit_points(class_name: str, con_modifier: int, rng: DiceRoller) -> int:
-#    """
-#    Roll class hit die and apply CON modifier.
-#    """
-#    raise NotImplementedError("roll_hit_points not implemented.")
-#
-#
-#def calculate_armor_class(dex_modifier: int) -> int:
-#    """
-#    Calculate AC for level 1 character with no armor or shield.
-#    Base 11 + DEX modifier.
-#    """
-#    raise NotImplementedError("calculate_armor_class not implemented.")
-#
-#
-#def starting_money(rng: DiceRoller) -> int:
-#    """
-#    Roll 3d6 * 10 to determine starting gold pieces.
-#    """
-#    raise NotImplementedError("starting_money not implemented.")
-#
-#
-#def level_one_attack_bonus() -> int:
-#    """
-#    Return attack bonus for level 1 character.
-#    """
-#    raise NotImplementedError("level_one_attack_bonus not implemented.")
-#
-#
-#def calculate_saving_throws(class_name: str, race: str) -> Dict[str, int]:
-#    """
-#    Return saving throws for level 1 character,
-#    applying racial bonuses.
-#    """
-#    raise NotImplementedError("calculate_saving_throws not implemented.")
-#
-#
+# --- Derived Stats ---
+
+def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoller) -> int:
+    """
+    Roll class hit die and apply CON modifier.
+    """
+    raise NotImplementedError("roll_hit_points not implemented.")
+
+
+def calculate_armor_class(dex_modifier: int) -> int:
+    """
+    Calculate AC for level 1 character with no armor or shield.
+    Base 11 + DEX modifier.
+    """
+    raise NotImplementedError("calculate_armor_class not implemented.")
+
+
+def starting_money(rng: DiceRoller) -> int:
+    """
+    Roll 3d6 * 10 to determine starting gold pieces.
+    """
+    raise NotImplementedError("starting_money not implemented.")
+
+
+def level_one_attack_bonus() -> int:
+    """
+    Return attack bonus for level 1 character.
+    """
+    return 1
+
+
+def calculate_saving_throws(class_name: str, race: str) -> Dict[str, int]:
+    """
+    Return saving throws for level 1 character, applying racial modifiers.
+    """
+    raise NotImplementedError("calculate_saving_throws not implemented.")
+
+
 ## --- Character Factory ---
 #
 #def generate_character(

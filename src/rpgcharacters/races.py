@@ -11,13 +11,14 @@ RACES = {
             "fighter",
             "thief",
         ],
-        "saving_throw_bonuses": {
-            "death_ray_or_poison": 4,
-            "magic_wands": 4,
-            "paralysis_or_petrify": 4,
-            "dragon_breath": 3,
-            "spells": 4,
+        "saving_throw_modifiers": {
+            "death_ray_or_poison": -4,
+            "magic_wands": -4,
+            "paralysis_or_petrify": -4,
+            "dragon_breath": -3,
+            "spells": -4,
         },
+        "hit_die_max": None,
     },
 
     "elf": {
@@ -33,11 +34,12 @@ RACES = {
             "magic-user",
             "thief",
         ],
-        "saving_throw_bonuses": {
-            "magic_wands": 2,
-            "paralysis_or_petrify": 1,
-            "spells": 2,
+        "saving_throw_modifiers": {
+            "magic_wands": -2,
+            "paralysis_or_petrify": -1,
+            "spells": -2,
         },
+        "hit_die_max": 6,
     },
 
     "halfling": {
@@ -52,13 +54,14 @@ RACES = {
             "fighter",
             "thief",
         ],
-        "saving_throw_bonuses": {
-            "death_ray_or_poison": 4,
-            "magic_wands": 4,
-            "paralysis_or_petrify": 4,
-            "dragon_breath": 3,
-            "spells": 4,
+        "saving_throw_modifiers": {
+            "death_ray_or_poison": -4,
+            "magic_wands": -4,
+            "paralysis_or_petrify": -4,
+            "dragon_breath": -3,
+            "spells": -4,
         },
+        "hit_die_max": 6,
     },
 
     "human": {
@@ -70,6 +73,7 @@ RACES = {
             "magic-user",
             "thief",
         ],
-        "saving_throw_bonuses": {},
+        "saving_throw_modifiers": {},
+        "hit_die_max": None,
     },
 }

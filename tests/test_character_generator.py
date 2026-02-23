@@ -158,33 +158,33 @@ def test_invalid_race_class_combo_returns_error():
     assert errors, "Expected class validation to reject disallowed race/class combos."
 
 
-## --- Derived Stat Tests ---
-#
-#def test_level_one_attack_bonus_is_plus_one():
-#    """Level 1 characters should have +1 attack bonus."""
-#    raise NotImplementedError
-#
-#
-#def test_calculate_ac_base_11_plus_dex():
-#    """AC should be 11 + DEX modifier (no armor)."""
-#    raise NotImplementedError
-#
-#
-#def test_starting_money_is_multiple_of_10():
-#    """Starting money should always be multiple of 10."""
-#    raise NotImplementedError
-#
-#
-#def test_roll_hit_points_applies_con_modifier():
-#    """HP should include CON modifier."""
-#    raise NotImplementedError
-#
-#
-#def test_saving_throws_include_race_bonuses():
-#    """Saving throws must reflect racial bonuses."""
-#    raise NotImplementedError
-#
-#
+# --- Derived Stat Tests ---
+
+def test_level_one_attack_bonus_is_plus_one():
+    """Level 1 characters should have +1 attack bonus."""
+    raise NotImplementedError
+
+
+def test_calculate_ac_base_11_plus_dex():
+    """AC should be 11 + DEX modifier (no armor)."""
+    raise NotImplementedError
+
+
+def test_starting_money_is_multiple_of_10():
+    """Starting money should always be multiple of 10."""
+    raise NotImplementedError
+
+
+def test_roll_hit_points_applies_con_modifier():
+    """HP should include CON modifier."""
+    raise NotImplementedError
+
+
+def test_saving_throws_include_race_bonuses():
+    """Saving throws must reflect racial bonuses."""
+    raise NotImplementedError
+
+
 ## --- Factory Test ---
 #
 #def test_generate_character_returns_valid_character_object():
