@@ -10,7 +10,7 @@ from rpgcharacters.equipment import ARMOR
 
 ABILITY_ROLL = "3d6"
 STARTING_MONEY_ROLL = "3d6"
-ABILITY_ROLL_ORDER = ("STR", "DEX", "CON", "INT", "WIS", "CHA")
+ABILITY_ROLL_ORDER = ("CHA", "CON", "DEX", "INT", "STR", "WIS")
 ABILITY_MOD_TABLE = (
     (3,   3, -3),
     (4,   5, -2),
