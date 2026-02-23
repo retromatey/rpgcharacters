@@ -172,7 +172,7 @@ def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoll
         dice_type = min(hit_die, hit_die_cap)
 
     roll = rng.roll(f"1d{dice_type}")
-    return roll + con_modifier
+    return max(1, roll + con_modifier)
 
 
 def calculate_armor_class(dex_modifier: int) -> int:
