@@ -48,6 +48,22 @@ class Character:
     race: str
     saving_throws: Dict[str, int]
 
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "race": self.race,
+            "class": self.class_name,
+            "level": self.level,
+            "abilities": vars(self.abilities),
+            "ability_mods": self.ability_mods,
+            "hp": self.hp,
+            "ac": self.ac,
+            "attack_bonus": self.attack_bonus,
+            "saving_throws": self.saving_throws,
+            "money_gp": self.money_gp,
+            "inventory": self.inventory,
+        }
+
 
 # --- Ability Logic ---
 

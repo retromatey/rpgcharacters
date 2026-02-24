@@ -1,3 +1,4 @@
+import json
 from diceroller.core import DiceRoller
 from rpgcharacters.character_generator import generate_character
 
@@ -16,8 +17,7 @@ def main():
         print(f"\nError: {e}")
         return
 
-    # print_character(character)
-    print(character)
+    print(json.dumps(character.to_dict(), indent=2))
 
 if __name__ == "__main__":
     main()
