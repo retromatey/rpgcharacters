@@ -1,0 +1,3 @@
+diceroller @ git+https://github.com/retromatey/diceroller.git@653bcb804cd2c540a3472f57616d41b19d737a0f
+pytest==9.0.2
+python-lsp-server==1.14.0
