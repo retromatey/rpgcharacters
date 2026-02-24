@@ -1,7 +1,10 @@
+import argparse
 import json
+import random
+import sys
 from typing import List, Optional
 
-from diceroller.core import DiceRoller
+from diceroller.core import CustomRandom, DiceRoller
 
 from rpgcharacters.character_generator import (
     ABILITY_ROLL_ORDER,
@@ -12,11 +15,27 @@ from rpgcharacters.character_generator import (
     roll_abilities,
     valid_classes_for_race,
     valid_races_for_abilities,
+    validate_class,
+    validate_race,
 )
 
 
 class RestartFlow(Exception):
     pass
+
+
+class SeededRandom(CustomRandom):
+    def __init__(self, seed: int):
+        self._rnd = random.Random(seed)
+
+    def randint(self, start: int, end: int) -> int:
+        return self._rnd.randint(start, end)
+
+
+def create_dice_roller(seed: Optional[int]) -> DiceRoller:
+    if seed is None:
+        return DiceRoller()
+    return DiceRoller(SeededRandom(seed))
 
 
 INVALID_SELECTION_MESSAGE = "Invalid selection. Please try again."
@@ -44,8 +63,7 @@ def run_ability_phase(rng: DiceRoller) -> AbilityScores:
             modifier = modifiers[ability]
             print(f"{ability}: {score:2d} ({format_modifier(modifier)})")
 
-        selection = prompt_yes_no("Accept these rolls? (y/n): ")
-        if selection:
+        if prompt_yes_no("Accept these rolls? (y/n): "):
             print()
             return abilities
         print()
@@ -75,8 +93,7 @@ def select_race(abilities: AbilityScores) -> str:
     for idx, race in enumerate(races, start=1):
         print(f"  {idx}) {race.title()}")
     print()
-    selection = select_from_list(races, f"Choose a race [1-{len(races)}]: ")
-    return selection
+    return select_from_list(races, f"Choose a race [1-{len(races)}]: ")
 
 
 def select_class(abilities: AbilityScores, race: str) -> str:
@@ -92,8 +109,7 @@ def select_class(abilities: AbilityScores, race: str) -> str:
     for idx, cls in enumerate(classes, start=1):
         print(f"  {idx}) {cls.title()}")
     print()
-    selection = select_from_list(classes, f"Choose a class [1-{len(classes)}]: ")
-    return selection
+    return select_from_list(classes, f"Choose a class [1-{len(classes)}]: ")
 
 
 def prompt_name() -> Optional[str]:
@@ -125,10 +141,9 @@ def format_saving_throw_name(name: str) -> str:
 
 def print_saving_throws(character: Character) -> None:
     print("Saving Throws:")
-    names = sorted(character.saving_throws)
-    for name in names:
-        display = format_saving_throw_name(name)
-        value = character.saving_throws[name]
+    for saving_throw in sorted(character.saving_throws):
+        display = format_saving_throw_name(saving_throw)
+        value = character.saving_throws[saving_throw]
         print(f"  {display}: {value:2d}")
     print()
 
@@ -178,8 +193,60 @@ def maybe_save_json(character: Character) -> None:
     print()
 
 
-def main() -> None:
-    rng = DiceRoller()
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="rpgcharacters",
+        description="Basic Fantasy Character Generator CLI",
+    )
+    parser.add_argument("--race", help="Specify character race.")
+    parser.add_argument(
+        "--class",
+        dest="class_name",
+        help="Specify character class.",
+    )
+    parser.add_argument("--name", help="Specify character name.")
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print character JSON to stdout.",
+    )
+    parser.add_argument(
+        "--output",
+        help="Write character JSON to FILE (non-interactive mode only).",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help="Use deterministic seed for random generation.",
+    )
+    parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        help="Run in non-interactive mode.",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print detailed execution steps (non-interactive mode only).",
+    )
+    return parser.parse_args()
+
+
+def should_use_noninteractive(args: argparse.Namespace) -> bool:
+    return any(
+        [
+            args.non_interactive,
+            args.race is not None,
+            args.class_name is not None,
+            args.json,
+            args.output is not None,
+            args.seed is not None,
+            args.verbose,
+        ]
+    )
+
+
+def run_interactive(args: argparse.Namespace, rng: DiceRoller) -> None:
     while True:
         try:
             print_header()
@@ -195,7 +262,11 @@ def main() -> None:
                 abilities=abilities,
             )
             print_character_summary(character)
-            maybe_save_json(character)
+            if args.json:
+                print(json.dumps(character.to_dict(), indent=2))
+                print()
+            else:
+                maybe_save_json(character)
             if not prompt_yes_no("Generate another character? (y/n): "):
                 break
         except RestartFlow:
@@ -204,6 +275,90 @@ def main() -> None:
             print(str(exc))
             print()
             continue
+
+
+def verbose_print(message: str, args: argparse.Namespace) -> None:
+    if args.verbose:
+        print(f"[verbose] {message}")
+
+
+def exit_with_error(message: str, args: argparse.Namespace) -> None:
+    prefix = "[verbose] " if args.verbose else ""
+    print(f"{prefix}{message}", file=sys.stderr)
+    sys.exit(2)
+
+
+def resolve_race(args: argparse.Namespace, abilities: AbilityScores) -> str:
+    candidate = args.race.lower() if args.race else None
+    valid = sorted(valid_races_for_abilities(abilities))
+    if candidate:
+        errors = validate_race(abilities, candidate)
+        if errors:
+            exit_with_error("; ".join(errors), args)
+        return candidate
+    if not valid:
+        exit_with_error("No valid races available for these ability scores.", args)
+    selection = valid[0]
+    verbose_print(f"Auto-selected race: {selection}", args)
+    return selection
+
+
+def resolve_class(args: argparse.Namespace, abilities: AbilityScores, race: str) -> str:
+    candidate = args.class_name.lower() if args.class_name else None
+    valid = sorted(valid_classes_for_race(abilities, race))
+    if candidate:
+        errors = validate_class(abilities, race, candidate)
+        if errors:
+            exit_with_error("; ".join(errors), args)
+        return candidate
+    if not valid:
+        exit_with_error("No valid classes available for this race.", args)
+    selection = valid[0]
+    verbose_print(f"Auto-selected class: {selection}", args)
+    return selection
+
+
+def format_verbose_abilities(abilities: AbilityScores) -> str:
+    return ", ".join(
+        f"{ability}={getattr(abilities, ability)}" for ability in ABILITY_ROLL_ORDER
+    )
+
+
+def run_noninteractive(args: argparse.Namespace, rng: DiceRoller) -> None:
+    if args.verbose and args.seed is not None:
+        verbose_print(f"Using seed: {args.seed}", args)
+    verbose_print("Rolling abilities...", args)
+    abilities = roll_abilities(rng)
+    if args.verbose:
+        print(f"[verbose] Abilities: {format_verbose_abilities(abilities)}")
+
+    race = resolve_race(args, abilities)
+    class_name = resolve_class(args, abilities, race)
+
+    character = generate_character(
+        race=race,
+        class_name=class_name,
+        rng=rng,
+        name=args.name,
+        abilities=abilities,
+    )
+
+    payload = json.dumps(character.to_dict(), indent=2)
+    if args.output:
+        verbose_print(f"Writing JSON to ./{args.output}", args)
+        with open(args.output, "w", encoding="utf-8") as file:
+            file.write(payload)
+    else:
+        print(payload)
+
+
+def main() -> None:
+    args = parse_args()
+    rng = create_dice_roller(args.seed)
+    if should_use_noninteractive(args):
+        run_noninteractive(args, rng)
+        return
+    run_interactive(args, rng)
 
 
 if __name__ == "__main__":
