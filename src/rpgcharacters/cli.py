@@ -24,18 +24,12 @@ class RestartFlow(Exception):
     pass
 
 
-class SeededRandom(CustomRandom):
-    def __init__(self, seed: int):
-        self._rnd = random.Random(seed)
-
-    def randint(self, start: int, end: int) -> int:
-        return self._rnd.randint(start, end)
-
-
 def create_dice_roller(seed: Optional[int]) -> DiceRoller:
     if seed is None:
         return DiceRoller()
-    return DiceRoller(SeededRandom(seed))
+    else:
+        custom_random = CustomRandom(seed)
+        return DiceRoller(custom_random)
 
 
 INVALID_SELECTION_MESSAGE = "Invalid selection. Please try again."
@@ -240,7 +234,6 @@ def should_use_noninteractive(args: argparse.Namespace) -> bool:
             args.class_name is not None,
             args.json,
             args.output is not None,
-            args.seed is not None,
             args.verbose,
         ]
     )
@@ -288,7 +281,7 @@ def exit_with_error(message: str, args: argparse.Namespace) -> None:
     sys.exit(2)
 
 
-def resolve_race(args: argparse.Namespace, abilities: AbilityScores) -> str:
+def resolve_race(args: argparse.Namespace, abilities: AbilityScores, rng: DiceRoller) -> str:
     candidate = args.race.lower() if args.race else None
     valid = sorted(valid_races_for_abilities(abilities))
     if candidate:
@@ -298,12 +291,12 @@ def resolve_race(args: argparse.Namespace, abilities: AbilityScores) -> str:
         return candidate
     if not valid:
         exit_with_error("No valid races available for these ability scores.", args)
-    selection = valid[0]
+    selection = valid[rng.rng.randint(0, len(valid)-1)]
     verbose_print(f"Auto-selected race: {selection}", args)
     return selection
 
 
-def resolve_class(args: argparse.Namespace, abilities: AbilityScores, race: str) -> str:
+def resolve_class(args: argparse.Namespace, abilities: AbilityScores, race: str, rng: DiceRoller) -> str:
     candidate = args.class_name.lower() if args.class_name else None
     valid = sorted(valid_classes_for_race(abilities, race))
     if candidate:
@@ -313,7 +306,7 @@ def resolve_class(args: argparse.Namespace, abilities: AbilityScores, race: str)
         return candidate
     if not valid:
         exit_with_error("No valid classes available for this race.", args)
-    selection = valid[0]
+    selection = valid[rng.rng.randint(0, len(valid)-1)]
     verbose_print(f"Auto-selected class: {selection}", args)
     return selection
 
@@ -332,8 +325,8 @@ def run_noninteractive(args: argparse.Namespace, rng: DiceRoller) -> None:
     if args.verbose:
         print(f"[verbose] Abilities: {format_verbose_abilities(abilities)}")
 
-    race = resolve_race(args, abilities)
-    class_name = resolve_class(args, abilities, race)
+    race = resolve_race(args, abilities, rng)
+    class_name = resolve_class(args, abilities, race, rng)
 
     character = generate_character(
         race=race,
