@@ -434,3 +434,128 @@ def test_generate_character_integration():
 
     # --- Saving throws ---
     assert character.saving_throws == calculate_saving_throws("fighter", "human")
+
+
+def test_validate_race_unknown_race_returns_error():
+    abilities = make_ability_scores()
+    errors = validate_race(abilities, "gnome")
+    assert errors == ["Unknown race: 'gnome'"]
+
+
+def test_validate_race_ignores_unknown_ability_keys(monkeypatch):
+    monkeypatch.setitem(
+        RACES,
+        "human",
+        {
+            "ability_min": {"LCK": 9},
+            "ability_max": {"SAN": 12},
+            "allowed_classes": ["cleric", "fighter", "magic-user", "thief"],
+            "saving_throw_modifiers": {},
+            "hit_die_max": None,
+        },
+    )
+    abilities = make_ability_scores()
+    errors = validate_race(abilities, "human")
+    assert errors == []
+
+
+def test_validate_class_unknown_race_raises_keyerror():
+    abilities = make_ability_scores()
+    with pytest.raises(KeyError):
+        validate_class(abilities, "gnome", "fighter")
+
+
+def test_validate_class_unknown_class_raises_keyerror():
+    abilities = make_ability_scores()
+    with pytest.raises(KeyError):
+        validate_class(abilities, "human", "paladin")
+
+
+def test_validate_class_skips_checks_when_race_and_class_data_empty(monkeypatch):
+    monkeypatch.setitem(RACES, "human", {})
+    monkeypatch.setitem(CLASSES, "fighter", {})
+    abilities = make_ability_scores(STR=3)
+    errors = validate_class(abilities, "human", "fighter")
+    assert errors == []
+
+
+def test_validate_class_prime_requisite_fails_at_score_3():
+    abilities = make_ability_scores(STR=3)
+    errors = validate_class(abilities, "human", "fighter")
+    assert errors == ["Fighter requires STR >= 9; found 3."]
+
+
+def test_validate_class_prime_requisite_passes_at_score_18():
+    abilities = make_ability_scores(STR=18)
+    errors = validate_class(abilities, "human", "fighter")
+    assert errors == []
+
+
+def test_validate_class_disallowed_race_combo_with_edge_scores():
+    abilities = make_ability_scores(DEX=18, INT=18)
+    errors = validate_class(abilities, "halfling", "magic-user")
+    assert errors == ["Halfling characters cannot be Magic-Users."]
+
+
+def test_roll_hit_points_unknown_class_raises_value_error():
+    rng = DiceRoller(CustomRandomMoc())
+    with pytest.raises(ValueError, match="Unknown class: paladin"):
+        roll_hit_points("paladin", "human", 0, rng)
+
+
+def test_roll_hit_points_unknown_race_raises_value_error():
+    rng = DiceRoller(CustomRandomMoc())
+    with pytest.raises(ValueError, match="Unknown race: gnome"):
+        roll_hit_points("fighter", "gnome", 0, rng)
+
+
+def test_calculate_saving_throws_unknown_class_raises_value_error():
+    with pytest.raises(ValueError, match="Unknown class: paladin"):
+        calculate_saving_throws("paladin", "human")
+
+
+def test_calculate_saving_throws_unknown_race_raises_value_error():
+    with pytest.raises(ValueError, match="Unknown race: gnome"):
+        calculate_saving_throws("fighter", "gnome")
+
+
+def test_generate_character_raises_on_invalid_race_before_class_validation():
+    rng = DiceRoller(CustomRandomMoc())
+    abilities = make_ability_scores(STR=18)
+    with pytest.raises(ValueError, match="Unknown race: 'gnome'"):
+        generate_character("gnome", "fighter", rng, abilities=abilities)
+
+
+def test_generate_character_raises_on_invalid_class():
+    rng = DiceRoller(CustomRandomMoc())
+    abilities = make_ability_scores(STR=18)
+    with pytest.raises(KeyError):
+        generate_character("human", "paladin", rng, abilities=abilities)
+
+
+def test_character_to_dict_returns_expected_fields():
+    moc = CustomRandomMoc()
+    moc.randint_sequence([4, 9])
+    rng = DiceRoller(moc)
+    abilities = AbilityScores(CHA=18, CON=3, DEX=10, INT=10, STR=18, WIS=10)
+
+    character = generate_character(
+        race="human",
+        class_name="fighter",
+        rng=rng,
+        name="Edge Case",
+        abilities=abilities,
+    )
+
+    data = character.to_dict()
+    assert data["name"] == "Edge Case"
+    assert data["race"] == "human"
+    assert data["class"] == "fighter"
+    assert data["abilities"] == vars(abilities)
+
+
+def test_generate_character_raises_on_disallowed_race_class_combo():
+    rng = DiceRoller(CustomRandomMoc())
+    abilities = make_ability_scores(DEX=18, INT=18, STR=10)
+    with pytest.raises(ValueError, match="Halfling characters cannot be Magic-Users."):
+        generate_character("halfling", "magic-user", rng, abilities=abilities)

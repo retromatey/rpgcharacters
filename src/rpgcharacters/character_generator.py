@@ -106,12 +106,10 @@ def validate_race(abilities: AbilityScores, race: str) -> list[str]:
     # TODO: refactor this block into a helper function
     normalized_race = race.lower()
     if normalized_race not in RACES:
-        raise ValueError(f"Unknown race: {normalized_race}")
+        errors.append(f"Unknown race: '{normalized_race}'")
+        return errors
     race_key = cast(RaceName, normalized_race)
     race_data = RACES[race_key]
-    if not race_data:
-        errors.append(f"Unknown race '{race}'.")
-        return errors
 
     ability_min = race_data["ability_min"]
     ability_max = race_data["ability_max"]
@@ -147,20 +145,16 @@ def validate_class(abilities: AbilityScores, race: str, class_name: str) -> list
     # TODO: refactor this block into a helper function
     normalized_race = race.lower()
     if normalized_race not in RACES:
-        raise ValueError(f"Unknown race: {normalized_race}")
+        errors.append(f"Unknown race '{normalized_race}'.")
     race_key = cast(RaceName, normalized_race)
     race_data = RACES[race_key]
-    if not race_data:
-        errors.append(f"Unknown race '{race}'.")
 
     # TODO: refactor this block into a helper function
     normalized_class = class_name.lower()
     if normalized_class not in CLASSES:
-        raise ValueError(f"Unknown class: {normalized_class}")
+        errors.append(f"Unknown class: '{normalized_class}'")
     class_key = cast(ClassName, normalized_class)
     class_data = CLASSES[class_key]
-    if not class_data:
-        errors.append(f"Unknown class '{class_name}'.")
 
     if race_data and class_data:
         allowed_classes = race_data["allowed_classes"] or []
@@ -205,8 +199,6 @@ def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoll
         raise ValueError(f"Unknown class: {normalized_class}")
     class_key = cast(ClassName, normalized_class)
     class_data = CLASSES[class_key]
-    if not class_data:
-        raise ValueError(f"Unknown class '{class_name}'.")
 
     # TODO: refactor this block into a helper function
     normalized_race = race.lower()
@@ -214,8 +206,6 @@ def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoll
         raise ValueError(f"Unknown race: {normalized_race}")
     race_key = cast(RaceName, normalized_race)
     race_data = RACES[race_key]
-    if not race_data:
-        raise ValueError(f"Unknown race '{race}'.")
 
     hit_die = class_data["hit_die"]
     hit_die_cap = race_data["hit_die_max"]
@@ -261,8 +251,6 @@ def calculate_saving_throws(class_name: str, race: str) -> dict[str, int]:
         raise ValueError(f"Unknown class: {normalized_class}")
     class_key = cast(ClassName, normalized_class)
     class_data = CLASSES[class_key]
-    if not class_data:
-        raise ValueError(f"Unknown class '{class_name}'.")
 
     # TODO: refactor this block into a helper function
     normalized_race = race.lower()
@@ -270,8 +258,6 @@ def calculate_saving_throws(class_name: str, race: str) -> dict[str, int]:
         raise ValueError(f"Unknown race: {normalized_race}")
     race_key = cast(RaceName, normalized_race)
     race_data = RACES[race_key]
-    if not race_data:
-        raise ValueError(f"Unknown race '{race}'.")
 
     base_saves = class_data["saving_throws"]
     modifiers = race_data["saving_throw_modifiers"]
