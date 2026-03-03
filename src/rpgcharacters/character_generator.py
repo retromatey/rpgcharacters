@@ -1,10 +1,11 @@
 from dataclasses import dataclass, fields
-from typing import Dict, List, Optional, Protocol
+from typing import Any, cast
+
 from diceroller.core import DiceRoller
 
-from rpgcharacters.classes import CLASSES
-from rpgcharacters.races import RACES
-from rpgcharacters.equipment import ARMOR
+from rpgcharacters.classes import CLASSES, ClassName
+from rpgcharacters.equipment import ARMOR, ArmorName
+from rpgcharacters.races import RACES, RaceName
 
 # --- Constants ---
 
@@ -36,19 +37,19 @@ class AbilityScores:
 @dataclass
 class Character:
     abilities: AbilityScores
-    ability_mods: Dict[str, int]
+    ability_mods: dict[str, int]
     ac: int
     attack_bonus: int
     class_name: str
     hp: int
-    inventory: List[str]
+    inventory: list[str]
     level: int
     money_gp: int
-    name: Optional[str]
+    name: str | None
     race: str
-    saving_throws: Dict[str, int]
+    saving_throws: dict[str, int]
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "race": self.race,
@@ -83,7 +84,7 @@ def roll_abilities(rng: DiceRoller) -> AbilityScores:
     rolled = {name: rng.roll(ABILITY_ROLL) for name in ABILITY_ROLL_ORDER}
     return AbilityScores(**rolled)
 
-def calculate_ability_modifiers(abilities: AbilityScores) -> Dict[str, int]:
+def calculate_ability_modifiers(abilities: AbilityScores) -> dict[str, int]:
     """
     Return dictionary mapping ability names to modifiers.
     """
@@ -95,20 +96,25 @@ def calculate_ability_modifiers(abilities: AbilityScores) -> Dict[str, int]:
 
 ## --- Validation ---
 
-def validate_race(abilities: AbilityScores, race: str) -> List[str]:
+def validate_race(abilities: AbilityScores, race: str) -> list[str]:
     """
     Validate racial ability requirements.
     Return list of validation error messages (empty if valid).
     """
-    errors: List[str] = []
+    errors: list[str] = []
+
+    # TODO: refactor this block into a helper function
     normalized_race = race.lower()
-    race_data = RACES.get(normalized_race)
+    if normalized_race not in RACES:
+        raise ValueError(f"Unknown race: {normalized_race}")
+    race_key = cast(RaceName, normalized_race)
+    race_data = RACES[race_key]
     if not race_data:
         errors.append(f"Unknown race '{race}'.")
         return errors
 
-    ability_min = race_data.get("ability_min", {})
-    ability_max = race_data.get("ability_max", {})
+    ability_min = race_data["ability_min"]
+    ability_max = race_data["ability_max"]
 
     for ability, minimum in ability_min.items():
         score = getattr(abilities, ability, None)
@@ -131,25 +137,33 @@ def validate_race(abilities: AbilityScores, race: str) -> List[str]:
     return errors
 
 
-def validate_class(abilities: AbilityScores, race: str, class_name: str) -> List[str]:
+def validate_class(abilities: AbilityScores, race: str, class_name: str) -> list[str]:
     """
     Validate class prime requisite and race/class compatibility.
     Return list of validation error messages (empty if valid).
     """
-    errors: List[str] = []
-    normalized_race = race.lower()
-    normalized_class = class_name.lower()
+    errors: list[str] = []
 
-    race_data = RACES.get(normalized_race)
+    # TODO: refactor this block into a helper function
+    normalized_race = race.lower()
+    if normalized_race not in RACES:
+        raise ValueError(f"Unknown race: {normalized_race}")
+    race_key = cast(RaceName, normalized_race)
+    race_data = RACES[race_key]
     if not race_data:
         errors.append(f"Unknown race '{race}'.")
 
-    class_data = CLASSES.get(normalized_class)
+    # TODO: refactor this block into a helper function
+    normalized_class = class_name.lower()
+    if normalized_class not in CLASSES:
+        raise ValueError(f"Unknown class: {normalized_class}")
+    class_key = cast(ClassName, normalized_class)
+    class_data = CLASSES[class_key]
     if not class_data:
         errors.append(f"Unknown class '{class_name}'.")
 
     if race_data and class_data:
-        allowed_classes = race_data.get("allowed_classes", [])
+        allowed_classes = race_data["allowed_classes"] or []
         if normalized_class not in allowed_classes:
             errors.append(
                 f"{race.title()} characters cannot be {class_name.title()}s."
@@ -185,18 +199,26 @@ def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoll
     """
     Roll class hit die and apply CON modifier.
     """
+    # TODO: refactor this block into a helper function
     normalized_class = class_name.lower()
-    class_data = CLASSES.get(normalized_class)
+    if normalized_class not in CLASSES:
+        raise ValueError(f"Unknown class: {normalized_class}")
+    class_key = cast(ClassName, normalized_class)
+    class_data = CLASSES[class_key]
     if not class_data:
         raise ValueError(f"Unknown class '{class_name}'.")
 
+    # TODO: refactor this block into a helper function
     normalized_race = race.lower()
-    race_data = RACES.get(normalized_race, {})
+    if normalized_race not in RACES:
+        raise ValueError(f"Unknown race: {normalized_race}")
+    race_key = cast(RaceName, normalized_race)
+    race_data = RACES[race_key]
     if not race_data:
         raise ValueError(f"Unknown race '{race}'.")
 
     hit_die = class_data["hit_die"]
-    hit_die_cap = race_data.get("hit_die_max")
+    hit_die_cap = race_data["hit_die_max"]
     dice_type = hit_die
     if hit_die_cap is not None:
         dice_type = min(hit_die, hit_die_cap)
@@ -210,7 +232,9 @@ def calculate_armor_class(dex_modifier: int) -> int:
     Calculate AC for level 1 character with no armor or shield.
     Base 11 + DEX modifier.
     """
-    return ARMOR["none"]["base_ac"] + dex_modifier
+    armor_key = cast(ArmorName, "none")
+    armor_data = ARMOR[armor_key]
+    return armor_data["base_ac"] + dex_modifier
 
 
 def starting_money(rng: DiceRoller) -> int:
@@ -227,22 +251,30 @@ def level_one_attack_bonus() -> int:
     return 1
 
 
-def calculate_saving_throws(class_name: str, race: str) -> Dict[str, int]:
+def calculate_saving_throws(class_name: str, race: str) -> dict[str, int]:
     """
     Return saving throws for level 1 character, applying racial modifiers.
     """
+    # TODO: refactor this block into a helper function
     normalized_class = class_name.lower()
-    class_data = CLASSES.get(normalized_class)
+    if normalized_class not in CLASSES:
+        raise ValueError(f"Unknown class: {normalized_class}")
+    class_key = cast(ClassName, normalized_class)
+    class_data = CLASSES[class_key]
     if not class_data:
         raise ValueError(f"Unknown class '{class_name}'.")
 
+    # TODO: refactor this block into a helper function
     normalized_race = race.lower()
-    race_data = RACES.get(normalized_race, {})
+    if normalized_race not in RACES:
+        raise ValueError(f"Unknown race: {normalized_race}")
+    race_key = cast(RaceName, normalized_race)
+    race_data = RACES[race_key]
     if not race_data:
         raise ValueError(f"Unknown race '{race}'.")
 
     base_saves = class_data["saving_throws"]
-    modifiers = race_data.get("saving_throw_modifiers", {})
+    modifiers = race_data["saving_throw_modifiers"]
     return {
         name: base_saves[name] + modifiers.get(name, 0)
         for name in base_saves
@@ -255,8 +287,8 @@ def generate_character(
     race: str,
     class_name: str,
     rng: DiceRoller,
-    name: Optional[str] = None,
-    abilities: Optional[AbilityScores] = None
+    name: str | None = None,
+    abilities: AbilityScores | None = None
 ) -> Character:
     """
     Generate a complete level 1 character using roll-first flow:

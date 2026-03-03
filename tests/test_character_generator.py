@@ -1,10 +1,9 @@
-import pytest
 from dataclasses import fields
 from typing import override
 
-from diceroller.core import DiceRoller, CustomRandom
-from rpgcharacters.classes import CLASSES
-from rpgcharacters.races import RACES
+import pytest
+from diceroller.core import CustomRandom, DiceRoller
+
 from rpgcharacters.character_generator import (
     ABILITY_ROLL_ORDER,
     AbilityScores,
@@ -22,6 +21,9 @@ from rpgcharacters.character_generator import (
     validate_class,
     validate_race,
 )
+from rpgcharacters.classes import CLASSES
+from rpgcharacters.races import RACES
+
 
 class CustomRandomMoc(CustomRandom):
     def __init__(self):
@@ -339,7 +341,7 @@ def test_roll_hit_points_respects_racial_hit_die_cap():
     con_modifier = 0
 
     # Fighter normally rolls d8, but elf cap is d6
-    hp = roll_hit_points("fighter", "elf", con_modifier, rng)
+    roll_hit_points("fighter", "elf", con_modifier, rng)
 
     # The dice type used must be a d6
     assert moc.dice_type == 6
@@ -431,5 +433,4 @@ def test_generate_character_integration():
     assert character.money_gp == 90  # 9 * 10
 
     # --- Saving throws ---
-    base_saves = CLASSES["fighter"]["saving_throws"]
     assert character.saving_throws == calculate_saving_throws("fighter", "human")

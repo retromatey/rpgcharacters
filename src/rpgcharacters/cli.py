@@ -1,8 +1,7 @@
 import argparse
 import json
-import random
 import sys
-from typing import List, Optional
+from importlib.metadata import PackageNotFoundError, version
 
 from diceroller.core import CustomRandom, DiceRoller
 
@@ -24,7 +23,7 @@ class RestartFlow(Exception):
     pass
 
 
-def create_dice_roller(seed: Optional[int]) -> DiceRoller:
+def create_dice_roller(seed: int | None) -> DiceRoller:
     if seed is None:
         return DiceRoller()
     else:
@@ -63,7 +62,7 @@ def run_ability_phase(rng: DiceRoller) -> AbilityScores:
         print()
 
 
-def select_from_list(items: List[str], prompt: str) -> str:
+def select_from_list(items: list[str], prompt: str) -> str:
     while True:
         choice = input(prompt).strip()
         if choice.isdigit():
@@ -106,7 +105,7 @@ def select_class(abilities: AbilityScores, race: str) -> str:
     return select_from_list(classes, f"Choose a class [1-{len(classes)}]: ")
 
 
-def prompt_name() -> Optional[str]:
+def prompt_name() -> str | None:
     name = input("Character name (optional): ").strip()
     return name or None
 
@@ -187,11 +186,19 @@ def maybe_save_json(character: Character) -> None:
     print()
 
 
+def _project_version() -> str:
+    try:
+        return version("rpgcharacters")  # must match [project].name in pyproject.toml
+    except PackageNotFoundError:
+        return "unknown"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="rpgcharacters",
         description="Basic Fantasy Character Generator CLI",
     )
+    parser.add_argument("--version", action="version", version=_project_version())
     parser.add_argument("--race", help="Specify character race.")
     parser.add_argument(
         "--class",
@@ -282,7 +289,8 @@ def exit_with_error(message: str, args: argparse.Namespace) -> None:
 
 
 def resolve_race(args: argparse.Namespace, abilities: AbilityScores, rng: DiceRoller) -> str:
-    candidate = args.race.lower() if args.race else None
+    # TODO: implement a helper function to parse the class from args
+    candidate: str | None = args.race.lower() if args.race else None
     valid = sorted(valid_races_for_abilities(abilities))
     if candidate:
         errors = validate_race(abilities, candidate)
@@ -296,8 +304,13 @@ def resolve_race(args: argparse.Namespace, abilities: AbilityScores, rng: DiceRo
     return selection
 
 
-def resolve_class(args: argparse.Namespace, abilities: AbilityScores, race: str, rng: DiceRoller) -> str:
-    candidate = args.class_name.lower() if args.class_name else None
+def resolve_class(
+    args: argparse.Namespace, 
+    abilities: AbilityScores, 
+    race: str, 
+    rng: DiceRoller) -> str:
+    # TODO: implement a helper function to parse the class from args
+    candidate: str | None = args.class_name.lower() if args.class_name else None
     valid = sorted(valid_classes_for_race(abilities, race))
     if candidate:
         errors = validate_class(abilities, race, candidate)

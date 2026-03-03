@@ -1,4 +1,24 @@
-CLASSES = {
+from __future__ import annotations
+
+from typing import Final, Literal, TypedDict
+
+ClassName = Literal["cleric", "fighter", "magic-user", "thief"]
+AbilityName = Literal["CHA", "CON", "DEX", "INT", "STR", "WIS"]
+SavingThrowName = Literal[
+    "death_ray_or_poison",
+    "magic_wands",
+    "paralysis_or_petrify",
+    "dragon_breath",
+    "spells",
+]
+
+class ClassData(TypedDict):
+    prime_requisite: AbilityName
+    min_prime: int
+    hit_die: int
+    saving_throws: dict[SavingThrowName, int] # e.g. {"spells": 15}
+
+CLASSES: Final[dict[ClassName, ClassData]] = {
     "cleric": {
         "prime_requisite": "WIS",
         "min_prime": 9,
