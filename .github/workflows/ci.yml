@@ -31,7 +31,12 @@ jobs:
         run: mypy src
 
       - name: Run tests with coverage
-        run: pytest --cov=rpgcharacters --cov-report=term
+        run: pytest --cov=rpgcharacters --cov-report=term --cov-report=xml
+      
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Build package
         run: python -m build
