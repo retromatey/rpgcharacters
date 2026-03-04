@@ -35,8 +35,9 @@
 - coverage reporting badge
 - README badges
 - release.yml (tag → GitHub release)
-- optional PyPI publish
-- optional Pages
+
+*Phase 4 – Docs*
+- Pages - MkDocs
 
 ---
 
