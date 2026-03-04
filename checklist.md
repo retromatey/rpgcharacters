@@ -241,4 +241,279 @@ python -m build
 
 ---
 
+## GitHub Actions Python Project Setup Checklist
 
+Quick reference for setting up CI, coverage, and automated releases for a Python
+project.
+
+---
+
+### 1. Project Requirements
+
+Project should use:
+
+- `pyproject.toml`
+- `pytest`
+- `pytest-cov`
+- `ruff`
+- `mypy`
+- `python -m build`
+
+Ensure dev dependencies install with:
+
+```
+pip install -e .[dev]
+```
+
+---
+
+### 2. Repository Structure
+
+Create workflows directory:
+
+```
+.github/
+  workflows/
+```
+
+Add two workflow files:
+
+```
+ci.yml
+release.yml
+```
+
+---
+
+### 3. CI Workflow (`ci.yml`)
+
+Purpose: validate every commit.
+
+Trigger CI on pushes and pull requests:
+
+```
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+```
+
+Runner:
+
+```
+runs-on: ubuntu-latest
+```
+
+Steps:
+
+1. Checkout repository
+
+```
+- uses: actions/checkout@v4
+```
+
+2. Setup Python
+
+```
+- uses: actions/setup-python@v5
+  with:
+    python-version: "3.14"
+```
+
+3. Install project + dev dependencies
+
+```
+python -m pip install --upgrade pip
+pip install -e .[dev]
+```
+
+4. Run linting
+
+```
+ruff check .
+```
+
+5. Run type checking
+
+```
+mypy src
+```
+
+6. Run tests and generate coverage
+
+```
+pytest --cov=<package> --cov-report=term --cov-report=xml
+```
+
+7. Upload coverage report
+
+```
+- uses: codecov/codecov-action@v4
+```
+
+8. Verify package builds correctly
+
+```
+python -m build
+```
+
+This step catches packaging errors before releases.
+
+---
+
+### 4. Release Workflow (`release.yml`)
+
+Purpose: automatically build artifacts and create a GitHub release when a tag is
+pushed.
+
+Trigger:
+
+```
+on:
+  push:
+    tags:
+      - "v*"
+```
+
+Required permission (important):
+
+```
+permissions:
+  contents: write
+```
+
+Without this the workflow fails with:
+
+```
+403 Resource not accessible by integration
+```
+
+---
+
+### 5. Release Workflow Steps
+
+Typical release job:
+
+1. Checkout repository
+2. Setup Python
+3. Install build tools
+
+```
+pip install build
+```
+
+4. Build distribution artifacts
+
+```
+python -m build
+```
+
+Artifacts generated:
+
+```
+dist/
+  project-x.y.z-py3-none-any.whl
+  project-x.y.z.tar.gz
+```
+
+5. Create GitHub release and upload artifacts
+
+Artifacts appear on the GitHub release page.
+
+---
+
+### 6. Creating a Release
+
+Create and push a version tag:
+
+```
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+This triggers the release workflow.
+
+---
+
+# 7. Re-running a Failed Release
+
+If the release workflow fails after a tag push, delete and push the tag again.
+
+Delete the local tag:
+
+```
+git tag -d v0.1.0
+```
+
+Delete remote tag:
+
+```
+git push origin :refs/tags/v0.1.0
+```
+
+Create and push tag again:
+
+```
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+This retriggers the workflow.
+
+---
+
+### 8. Coverage Reporting
+
+CI generates coverage with:
+
+```
+pytest --cov=<package> --cov-report=term --cov-report=xml
+```
+
+Coverage is uploaded using a coverage service action:
+
+```
+- uses: codecov/codecov-action@v5
+```
+
+---
+
+### 9. Typical README Badges
+
+Common project badges:
+
+- CI status
+- Code coverage
+- Latest release
+- Python version
+- License
+
+Example:
+
+```
+CI | Coverage | Release | Python | License
+```
+
+---
+
+### 10. Summary
+
+This setup provides:
+
+| Feature            | Tool                      |
+|--------------------|---------------------------|
+| CI validation      | GitHub Actions            |
+| Linting            | Ruff                      |
+| Type checking      | MyPy                      |
+| Testing            | Pytest                    |
+| Coverage reporting | Codecov                   |
+| Packaging          | python -m build           |
+| Releases           | GitHub Actions + git tags |
+
+Benefits:
+
+- reproducible builds
+- automated testing
+- automated releases
+- reliable packaging
