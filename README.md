@@ -60,7 +60,6 @@ python -m build
 Run the `rpgcharacters --help` command to view options.
 
 ```bash
-rpgcharacters --help
 usage: rpgcharacters [-h] [--version] [--race RACE] [--class CLASS_NAME] [--name NAME]
                      [--json] [--output OUTPUT] [--seed SEED] [--non-interactive] [--verbose]
 
@@ -97,8 +96,16 @@ desired.
 
 #### Interactive mode example
 
+Enter the `rpgcharacters` command to start interactive mode.
+
 ```bash
 rpgcharacters 
+```
+
+Sample output:
+
+
+```bash
 ========================================
  Basic Fantasy Character Generator
 ========================================
@@ -157,8 +164,16 @@ Generate another character? (y/n): n
 
 #### Non-interactive mode example - generate a random character
 
+Enter the `rpgcharacters --non-interactive` command to generate a random
+character.
+
 ```bash
 rpgcharacters --non-interactive
+```
+
+Sample output:
+
+```bash
 {
   "name": null,
   "race": "human",
@@ -203,6 +218,11 @@ testing).
 
 ```bash
 rpgcharacters --non-interactive --seed 7654321
+```
+
+Sample output: 
+
+```bash
 {
   "name": null,
   "race": "dwarf",
