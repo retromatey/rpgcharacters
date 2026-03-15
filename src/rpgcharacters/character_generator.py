@@ -1,8 +1,9 @@
-"""Build Basic Fantasy RPG characters and level-1 derived statistics.
+"""
+Character generation logic for Basic Fantasy RPG.
 
-The module provides a roll-first character generation flow with Basic Fantasy
-style rules, including 3d6 ability rolls, race/class eligibility checks,
-hit points, armor class, saving throws, and starting money.
+This module implements a roll-first character creation flow including 3d6
+ability rolls, race and class validation, hit points, armor class, saving
+throws, and starting money.
 """
 
 from dataclasses import dataclass, fields
@@ -33,7 +34,16 @@ ABILITY_MOD_TABLE = (
 
 @dataclass
 class AbilityScores:
-    """Store a character's six core ability scores."""
+    """Container for the six Basic Fantasy ability scores.
+
+    Attributes:
+        CHA: Charisma score.
+        CON: Constitution score.
+        DEX: Dexterity score.
+        INT: Intelligence score.
+        STR: Strength score.
+        WIS: Wisdom score.
+    """
 
     CHA: int
     CON: int
@@ -45,7 +55,12 @@ class AbilityScores:
 
 @dataclass
 class Character:
-    """Represent a generated level-1 character and derived statistics."""
+    """Represent a fully generated level-1 character.
+
+    The object contains the character's rolled abilities along with all
+    derived statistics such as hit points, armor class, attack bonus,
+    saving throws, and starting wealth.
+    """
 
     abilities: AbilityScores
     ability_mods: dict[str, int]
@@ -268,8 +283,7 @@ def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoll
 
     Basic Fantasy uses class-based hit dice, with racial hit-die caps for some
     races. This function applies the cap (if any), adds the Constitution
-    modifier, and
-    enforces a minimum of 1 HP.
+    modifier, and enforces a minimum of 1 HP.
 
     Args:
         class_name (str): Character class.
@@ -308,7 +322,7 @@ def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoll
 
 
 def calculate_armor_class(dex_modifier: int) -> int:
-    """Calculate starting Armor Class with no armor equipped.
+    """Calculate base Armor Class before equipment is applied.
 
     Args:
         dex_modifier (int): Dexterity modifier.
