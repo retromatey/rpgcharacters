@@ -28,6 +28,12 @@ dev = [
     "mypy",
     "build",
 ]
+docs = [
+  "mkdocs>=1.6",
+  "mkdocs-material>=9.5",
+  "mkdocstrings[python]>=0.25",
+  "mkdocs-macros-plugin",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

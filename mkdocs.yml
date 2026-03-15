@@ -1,0 +1,42 @@
+site_name: rpgcharacters
+site_description: Basic Fantasy RPG character generator
+site_url: https://retromatey.github.io/rpgcharacters/
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search
+  - macros
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - CLI Usage: cli.md
+  - Character Generation: character-generation.md
+  - API Reference:
+    - Character Generator: api/character_generator.md
+    - Classes: api/classes.md
+    - Races: api/races.md
+    - Equipment: api/equipment.md
+  - Development: development.md

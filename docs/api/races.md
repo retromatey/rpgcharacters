@@ -1,0 +1,3 @@
+# Races API
+
+::: rpgcharacters.races
