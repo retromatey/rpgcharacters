@@ -1,1 +1,21 @@
-"""Basic Fantasy RPG character generation package."""
+"""
+Basic Fantasy RPG character generation package.
+
+This package provides tools for generating level-1 characters using Basic
+Fantasy rules, including ability rolling, race and class validation, and derived
+combat statistics.
+"""
+
+from .character_generator import (
+    AbilityScores,
+    Character,
+    generate_character,
+    roll_abilities,
+)
+
+__all__ = [
+    "AbilityScores",
+    "Character",
+    "generate_character",
+    "roll_abilities",
+]
