@@ -1,8 +1,8 @@
-"""Generate Basic Fantasy RPG character data and derived level-1 stats.
+"""Build Basic Fantasy RPG characters and level-1 derived statistics.
 
-This module implements a roll-first character creation flow using Basic Fantasy
-style rules, including 3d6 ability generation, class/race eligibility checks,
-and level-1 combat statistics.
+The module provides a roll-first character generation flow with Basic Fantasy
+style rules, including 3d6 ability rolls, race/class eligibility checks,
+hit points, armor class, saving throws, and starting money.
 """
 
 from dataclasses import dataclass, fields
@@ -33,7 +33,7 @@ ABILITY_MOD_TABLE = (
 
 @dataclass
 class AbilityScores:
-    """Container for a character's six core ability scores."""
+    """Store a character's six core ability scores."""
 
     CHA: int
     CON: int
@@ -45,7 +45,7 @@ class AbilityScores:
 
 @dataclass
 class Character:
-    """Represents a generated level-1 character and derived game statistics."""
+    """Represent a generated level-1 character and derived statistics."""
 
     abilities: AbilityScores
     ability_mods: dict[str, int]
@@ -95,7 +95,7 @@ def ability_modifier(score: int) -> int:
         int: Bonus or penalty for the score.
 
     Raises:
-        ValueError: If ``score`` is outside the supported 3-18 range.
+        ValueError: If ``score`` is outside the supported 3 to 18 range.
     """
     for low, high, mod in ABILITY_MOD_TABLE:
         if low <= score <= high:
@@ -103,7 +103,9 @@ def ability_modifier(score: int) -> int:
     raise ValueError("Ability score must be between 3 and 18.")
 
 def roll_abilities(rng: DiceRoller) -> AbilityScores:
-    """Roll ability scores using Basic Fantasy's 3d6-in-order method.
+    """Roll ability scores using Basic Fantasy's 3d6 method.
+
+    Rolls one ``3d6`` result for each ability in ``ABILITY_ROLL_ORDER``.
 
     Args:
         rng (DiceRoller): Dice roller used to generate each score.
@@ -129,7 +131,7 @@ def calculate_ability_modifiers(abilities: AbilityScores) -> dict[str, int]:
     }
 
 
-## --- Validation ---
+# --- Validation ---
 
 def validate_race(abilities: AbilityScores, race: str) -> list[str]:
     """Validate race selection against race ability limits.
@@ -142,7 +144,7 @@ def validate_race(abilities: AbilityScores, race: str) -> list[str]:
         race (str): Race name to validate.
 
     Returns:
-        list[str]: Validation errors. Empty when the race is valid.
+        list[str]: Validation messages. Empty when the race is valid.
     """
     errors: list[str] = []
 
@@ -190,7 +192,10 @@ def validate_class(abilities: AbilityScores, race: str, class_name: str) -> list
         class_name (str): Class name to validate.
 
     Returns:
-        list[str]: Validation errors. Empty when the class is valid.
+        list[str]: Validation messages. Empty when the class is valid.
+
+    Raises:
+        KeyError: If ``race`` or ``class_name`` is unknown after normalization.
     """
     errors: list[str] = []
 
@@ -232,7 +237,7 @@ def valid_races_for_abilities(abilities: AbilityScores) -> list[str]:
         abilities (AbilityScores): Ability scores to evaluate.
 
     Returns:
-        list[str]: Race names that pass ``validate_race``.
+        list[str]: Race names with no race-validation messages.
     """
     return [
         race for race in RACES
@@ -248,7 +253,7 @@ def valid_classes_for_race(abilities: AbilityScores, race: str) -> list[str]:
         race (str): Race used for class compatibility checks.
 
     Returns:
-        list[str]: Class names that pass ``validate_class``.
+        list[str]: Class names with no class-validation messages.
     """
     return [
         class_name for class_name in CLASSES
@@ -262,7 +267,8 @@ def roll_hit_points(class_name: str, race: str, con_modifier: int, rng: DiceRoll
     """Roll level-1 hit points from class hit die and Constitution modifier.
 
     Basic Fantasy uses class-based hit dice, with racial hit-die caps for some
-    races. This function applies the cap (if any), adds CON modifier, and
+    races. This function applies the cap (if any), adds the Constitution
+    modifier, and
     enforces a minimum of 1 HP.
 
     Args:
@@ -328,7 +334,7 @@ def starting_money(rng: DiceRoller) -> int:
 
 
 def level_one_attack_bonus() -> int:
-    """Return the fixed level-1 attack bonus.
+    """Return the fixed Basic Fantasy level-1 attack bonus.
 
     Returns:
         int: Level-1 attack bonus.
@@ -337,14 +343,14 @@ def level_one_attack_bonus() -> int:
 
 
 def calculate_saving_throws(class_name: str, race: str) -> dict[str, int]:
-    """Compute level-1 saving throws with racial adjustments.
+    """Compute level-1 saving throws with racial modifiers.
 
     Args:
         class_name (str): Character class used for base saves.
         race (str): Character race used for save modifiers.
 
     Returns:
-        dict[str, int]: Saving throw names mapped to final target numbers.
+        dict[str, int]: Saving throw names mapped to adjusted values.
 
     Raises:
         ValueError: If ``class_name`` or ``race`` is unknown.
@@ -382,9 +388,9 @@ def generate_character(
 ) -> Character:
     """Generate a complete level-1 character from race, class, and dice rolls.
 
-    The flow implements core Basic Fantasy creation steps: 3d6 abilities (when
-    not provided), race/class eligibility checks, hit points, saving throws, AC,
-    attack bonus, and starting money.
+    The flow implements core Basic Fantasy creation steps: 3d6 ability rolling
+    (when not provided), race/class eligibility checks, hit points, armor
+    class, attack bonus, saving throws, and starting money.
 
     Args:
         race (str): Selected race name.
@@ -398,7 +404,7 @@ def generate_character(
         Character: Fully built level-1 character record.
 
     Raises:
-        ValueError: If race or class validation fails.
+        ValueError: If race or class validation returns any messages.
     """
     # 1. Roll abilities
     # abilities = roll_abilities(rng)
