@@ -9,6 +9,27 @@ theme:
   name: material
   features:
     - content.code.copy
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+
+  palette:
+
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
 
 extra:
   social:
@@ -21,6 +42,7 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.highlight
+  - pymdownx.inlinehilite
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -44,10 +66,10 @@ nav:
   - CLI Usage: cli.md
   - Character Generation: character-generation.md
   - API Reference:
-    - Character Generator: api/character_generator.md
-    - Classes: api/classes.md
-    - Races: api/races.md
-    - Equipment: api/equipment.md
+      - Character Generator: api/character_generator.md
+      - Classes: api/classes.md
+      - Races: api/races.md
+      - Equipment: api/equipment.md
   - Development: development.md
 
 copyright: Copyright © 2026 Jason Tennant — MIT License
