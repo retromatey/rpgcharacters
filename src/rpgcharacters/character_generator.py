@@ -60,6 +60,20 @@ class Character:
     The object contains the character's rolled abilities along with all
     derived statistics such as hit points, armor class, attack bonus,
     saving throws, and starting wealth.
+
+    Attributes:
+        abilities: Rolled or assigned ability scores.
+        ability_mods: Ability modifiers keyed by ability name.
+        ac: Final armor class value at the current state.
+        attack_bonus: Attack bonus applied to attack rolls.
+        class_name: Normalized class name (lowercase).
+        hp: Current hit points.
+        inventory: Carried items as display names.
+        level: Character level.
+        money_gp: Current wealth in gold pieces.
+        name: Optional character name.
+        race: Normalized race name (lowercase).
+        saving_throws: Saving throw targets keyed by saving throw name.
     """
 
     abilities: AbilityScores
