@@ -2,10 +2,19 @@ site_name: rpgcharacters
 site_description: Basic Fantasy RPG character generator
 site_url: https://retromatey.github.io/rpgcharacters/
 
+repo_url: https://github.com/retromatey/rpgcharacters
+repo_name: retromatey/rpgcharacters
+
 theme:
   name: material
   features:
     - content.code.copy
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/retromatey/rpgcharacters
+      name: GitHub
 
 markdown_extensions:
   - admonition
@@ -40,3 +49,5 @@ nav:
     - Races: api/races.md
     - Equipment: api/equipment.md
   - Development: development.md
+
+copyright: Copyright © 2026 Jason Tennant — MIT License
