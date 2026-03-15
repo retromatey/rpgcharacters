@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Final, Literal, TypedDict
 
-from rpgcharacters.classes import ClassName, SavingThrowName
+from rpgcharacters.classes import AbilityName, ClassName, SavingThrowName
 
 RaceName = Literal["dwarf", "elf", "halfling", "human"]
 """Canonical lowercase identifiers for supported character races."""
@@ -27,8 +27,8 @@ class RaceData(TypedDict):
         hit_die_max: Optional cap on the class hit die size.
     """
 
-    ability_min: dict[str, int]  # e.g. {"CON": 9}
-    ability_max: dict[str, int]  # e.g. {"CHA": 17}
+    ability_min: dict[AbilityName, int]  # e.g. {"CON": 9}
+    ability_max: dict[AbilityName, int]  # e.g. {"CHA": 17}
     allowed_classes: list[ClassName]
     saving_throw_modifiers: dict[SavingThrowName, int]  # e.g. {"magic_wands": -4}
     hit_die_max: int | None
