@@ -12,10 +12,14 @@ from .character_generator import (
     generate_character,
     roll_abilities,
 )
+from .classes import ClassName
+from .races import RaceName
 
 __all__ = [
     "AbilityScores",
     "Character",
+    "ClassName",
+    "RaceName",
     "generate_character",
     "roll_abilities",
 ]
