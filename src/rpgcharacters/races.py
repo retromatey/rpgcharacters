@@ -1,3 +1,5 @@
+"""Define Basic Fantasy races and race-based character constraints."""
+
 from __future__ import annotations
 
 from typing import Final, Literal, TypedDict
@@ -5,13 +7,18 @@ from typing import Final, Literal, TypedDict
 from rpgcharacters.classes import ClassName, SavingThrowName
 
 RaceName = Literal["dwarf", "elf", "halfling", "human"]
+"""Supported race identifiers."""
+
 
 class RaceData(TypedDict):
-    ability_min: dict[str, int] # e.g. {"CON", 9}
-    ability_max: dict[str, int] # e.g. {"CHA", 17}
+    """Race-based restrictions and modifiers used during character creation."""
+
+    ability_min: dict[str, int]  # e.g. {"CON": 9}
+    ability_max: dict[str, int]  # e.g. {"CHA": 17}
     allowed_classes: list[ClassName]
-    saving_throw_modifiers: dict[SavingThrowName, int] # e.g. {"magic_wands": -4}
+    saving_throw_modifiers: dict[SavingThrowName, int]  # e.g. {"magic_wands": -4}
     hit_die_max: int | None
+
 
 RACES: Final[dict[RaceName, RaceData]] = {
     "dwarf": {

@@ -1,9 +1,15 @@
+"""Define Basic Fantasy character classes and level-1 class data."""
+
 from __future__ import annotations
 
 from typing import Final, Literal, TypedDict
 
 ClassName = Literal["cleric", "fighter", "magic-user", "thief"]
+"""Supported class identifiers."""
+
 AbilityName = Literal["CHA", "CON", "DEX", "INT", "STR", "WIS"]
+"""Supported ability identifiers."""
+
 SavingThrowName = Literal[
     "death_ray_or_poison",
     "magic_wands",
@@ -11,12 +17,17 @@ SavingThrowName = Literal[
     "dragon_breath",
     "spells",
 ]
+"""Supported saving throw identifiers."""
+
 
 class ClassData(TypedDict):
+    """Level-1 rules data associated with a class."""
+
     prime_requisite: AbilityName
     min_prime: int
     hit_die: int
-    saving_throws: dict[SavingThrowName, int] # e.g. {"spells": 15}
+    saving_throws: dict[SavingThrowName, int]  # e.g. {"spells": 15}
+
 
 CLASSES: Final[dict[ClassName, ClassData]] = {
     "cleric": {

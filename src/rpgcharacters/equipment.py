@@ -1,14 +1,21 @@
+"""Define armor and shield equipment data used in character calculations."""
+
 from __future__ import annotations
 
 from typing import Final, Literal, TypedDict
 
 ArmorName = Literal["none", "leather", "chain_mail", "plate_mail"]
+"""Supported armor identifiers."""
+
 
 class ArmorData(TypedDict):
+    """Armor properties used for AC and inventory metadata."""
+
     base_ac: int
     weight: int
     cost_gp: int
     type_: str
+
 
 ARMOR: Final[dict[ArmorName, ArmorData]] = {
     "none": {
@@ -38,11 +45,16 @@ ARMOR: Final[dict[ArmorName, ArmorData]] = {
 }
 
 ShieldName = Literal["shield"]
+"""Supported shield identifiers."""
+
 
 class ShieldData(TypedDict, total=False):
+    """Shield properties used for AC and inventory metadata."""
+
     ac_bonus: int
     weight: int
     cost_gp: int
+
 
 SHIELDS = {
     "shield": {
