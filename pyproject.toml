@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rpgcharacters"
-version = "0.1.0"
+version = "0.1.1"
 description = "Character generation and utilities for Basic Fantasy RPG."
 readme = "README.md"
 requires-python = ">=3.14"
