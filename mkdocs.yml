@@ -48,7 +48,8 @@ markdown_extensions:
 
 plugins:
   - search
-  - macros
+  - macros:
+      module_name: docs_macros
   - autorefs
   - mkdocstrings:
       handlers:

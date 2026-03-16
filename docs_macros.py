@@ -11,4 +11,7 @@ def define_env(env):
             capture_output=True,
             text=True,
         )
-        return result.stdout
+
+        output = result.stdout.strip()
+
+        return f"$ {command}\n{output}"
