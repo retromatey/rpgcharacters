@@ -1,0 +1,3 @@
+# Equipment API
+
+::: rpgcharacters.equipment

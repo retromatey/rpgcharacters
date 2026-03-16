@@ -360,7 +360,7 @@ Minimal Python code example.
 
 ```python
 from diceroller.core import DiceRoller
-from rpgcharacters.character_generator import generate_character
+from rpgcharacters import generate_character
 
 rng = DiceRoller() # random seed
 character = generate_character(race="human", class_name="fighter", rng=rng, name="Vey Vale")

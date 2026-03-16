@@ -1,0 +1,76 @@
+site_name: rpgcharacters
+site_description: Basic Fantasy RPG character generator
+site_url: https://retromatey.github.io/rpgcharacters/
+
+repo_url: https://github.com/retromatey/rpgcharacters
+repo_name: retromatey/rpgcharacters
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+
+  palette:
+
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/retromatey/rpgcharacters
+      name: GitHub
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search
+  - macros:
+      module_name: docs_macros
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - CLI Usage: cli.md
+  - Character Generation: character-generation.md
+  - API Reference:
+      - Character Generator: api/character_generator.md
+      - Classes: api/classes.md
+      - Races: api/races.md
+      - Equipment: api/equipment.md
+  - Development: development.md
+
+copyright: Copyright © 2026 Jason Tennant — MIT License

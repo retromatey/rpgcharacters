@@ -1,14 +1,38 @@
+"""
+Armor and shield equipment data used in character calculations.
+
+This module defines armor and shield properties such as base armor class,
+weight, and cost. These values are used during character generation and
+combat-related calculations.
+"""
+
 from __future__ import annotations
 
 from typing import Final, Literal, TypedDict
 
 ArmorName = Literal["none", "leather", "chain_mail", "plate_mail"]
+"""Supported armor identifiers."""
+
+
+ArmorType = Literal["none", "light", "metal"]
+"""Supported armor type identifiers."""
+
 
 class ArmorData(TypedDict):
+    """Structured data describing armor equipment.
+
+    Attributes:
+        base_ac: Armor Class provided by the armor before modifiers.
+        weight: Weight of the armor in pounds.
+        cost_gp: Purchase cost in gold pieces.
+        type_: Category of armor (e.g. "light", "metal").
+    """
+
     base_ac: int
     weight: int
     cost_gp: int
-    type_: str
+    type_: ArmorType
+
 
 ARMOR: Final[dict[ArmorName, ArmorData]] = {
     "none": {
@@ -38,13 +62,24 @@ ARMOR: Final[dict[ArmorName, ArmorData]] = {
 }
 
 ShieldName = Literal["shield"]
+"""Supported shield identifiers."""
+
 
 class ShieldData(TypedDict, total=False):
+    """Structured data describing shield equipment.
+
+    Attributes:
+        ac_bonus: Armor Class bonus provided by the shield.
+        weight: Weight of the shield in pounds.
+        cost_gp: Purchase cost in gold pieces.
+    """
+
     ac_bonus: int
     weight: int
     cost_gp: int
 
-SHIELDS = {
+
+SHIELDS: Final[dict[ShieldName, ShieldData]] = {
     "shield": {
         "ac_bonus": 1,
         "weight": 5,

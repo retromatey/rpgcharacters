@@ -1,9 +1,21 @@
+"""
+Basic Fantasy class definitions and level-1 rules data.
+
+This module defines the supported character classes along with their prime
+requisites, minimum ability requirements, hit dice, and base saving throws used
+during character generation.
+"""
+
 from __future__ import annotations
 
 from typing import Final, Literal, TypedDict
 
 ClassName = Literal["cleric", "fighter", "magic-user", "thief"]
+"""Canonical lowercase identifiers for supported character classes."""
+
 AbilityName = Literal["CHA", "CON", "DEX", "INT", "STR", "WIS"]
+"""Ability score identifiers used throughout the rules system."""
+
 SavingThrowName = Literal[
     "death_ray_or_poison",
     "magic_wands",
@@ -11,12 +23,24 @@ SavingThrowName = Literal[
     "dragon_breath",
     "spells",
 ]
+"""Names of saving throw categories used by Basic Fantasy."""
+
 
 class ClassData(TypedDict):
+    """Structured rule data describing a character class.
+
+    Attributes:
+        prime_requisite: Ability score required for the class.
+        min_prime: Minimum value required for the prime requisite.
+        hit_die: Hit die size used to roll level-1 hit points.
+        saving_throws: Base level-1 saving throw values for the class.
+    """
+
     prime_requisite: AbilityName
     min_prime: int
     hit_die: int
-    saving_throws: dict[SavingThrowName, int] # e.g. {"spells": 15}
+    saving_throws: dict[SavingThrowName, int]  # e.g. {"spells": 15}
+
 
 CLASSES: Final[dict[ClassName, ClassData]] = {
     "cleric": {
